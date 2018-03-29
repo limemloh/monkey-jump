@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["DOM", "es6"],
+    "strict": true,
+    "moduleResolution": "node"
+  },
+  "includes": ["lib/**/*.ts"]
+}

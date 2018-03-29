@@ -1,0 +1,36 @@
+{
+  "name": "monkey-jump",
+  "main": "./lib/index",
+  "version": "0.0.1",
+  "description": "Use the keyboard to navigate everywhere in Atom",
+  "keywords": ["atom", "navigating", "keyboard", "UI", "monkey"],
+  "activationCommands": {
+    "atom-workspace": "monkey:jump"
+  },
+  "atomTranspilers": [
+    {
+      "transpiler": "atom-ts-transpiler",
+      "glob": "{!(node_modules)/**/,}*.ts?(x)",
+      "options": {
+        "compilerOptions": {},
+        "cacheKeyFiles": [
+          "tsconfig.json"
+        ],
+        "verbose": false
+      }
+    }
+  ],
+  "repository": "https://github.com/limemloh/monkey-jump",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "atom-ts-transpiler": "^1.4.3",
+    "typescript": "^2.7.2"
+  },
+  "prettier": {},
+  "devDependencies": {
+    "@types/atom": "^1.25.0"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "context-menu": {},
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "Monkey",
+          "submenu": [
+            {
+              "label": "Jump",
+              "command": "monkey:jump"
+            },
+            {
+              "label": "Clear hints",
+              "command": "monkey:Clear hints"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

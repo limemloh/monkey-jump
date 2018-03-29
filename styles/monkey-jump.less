@@ -1,0 +1,18 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+
+.monkey-jump-hint {
+  position: absolute;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  z-index: 2147483647;
+  padding: 0.25em;
+  line-height: normal;
+  border-radius: 3px;
+  background: fade(@background-color-info, 90%);
+  color: @text-color;
+}
