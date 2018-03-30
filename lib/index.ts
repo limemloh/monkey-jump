@@ -29,13 +29,17 @@ function isEditor(node: HTMLElement) {
   );
 }
 
-function isInvisible(element: HTMLElement) {
+function isInvisible(node: HTMLElement) {
   return (
-    !element.offsetParent ||
-    element.getAttribute("type") === "hidden" ||
-    getComputedStyle(element).visibility === "hidden" ||
-    element.getAttribute("display") === "none"
+    !node.offsetParent ||
+    node.getAttribute("type") === "hidden" ||
+    getComputedStyle(node).visibility === "hidden" ||
+    node.getAttribute("display") === "none"
   );
+}
+
+function isGithubStatusBarTileController(node: HTMLElement) {
+  return node.classList.contains("github-StatusBarTileController");
 }
 
 interface Clickable {
@@ -140,6 +144,13 @@ function searchClickables(view: Node): Clickable[] {
     return [new InputClickable(view)];
   }
 
+  if (isGithubStatusBarTileController(view)) {
+    const githubBtns = <NodeListOf<HTMLElement>>view.querySelectorAll(
+      ".github-branch, .github-PushPull"
+    );
+    return map(makeTreeViewClickable, githubBtns);
+  }
+
   if (clickableTags.includes(view.tagName)) {
     return [new SimpleClickable(view)];
   }
@@ -152,6 +163,9 @@ function getClickables() {
 
   const clickables = searchClickables(view);
 
+  const tooltip = view.parentNode.querySelectorAll(".tooltip");
+  const tooltipClickables = flatMap(searchClickables, tooltip);
+
   // const dockToggles = view.querySelectorAll(".atom-dock-toggle-button");
   // for (const btn of dockToggles) {
   //   btn.classList.add("atom-dock-toggle-button-visible");
@@ -160,7 +174,7 @@ function getClickables() {
   //     handler: () => {}
   //   });
   // }
-  return clickables;
+  return clickables.concat(tooltipClickables);
 }
 
 function clearAllHints() {
