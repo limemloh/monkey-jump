@@ -290,7 +290,7 @@ async function handleKeys(keymap: KeySeqMap<Clickable>) {
       : pressed;
     throw new MonkeyError(`No target for given key '${k}'`);
   }
-  value.handler();
+  await value.handler();
 }
 
 function jump() {
