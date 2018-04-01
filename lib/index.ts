@@ -1,5 +1,5 @@
 import { CompositeDisposable } from "atom";
-import { map, flatMap } from "./utils";
+import * as L from "list";
 
 const disposables = new CompositeDisposable();
 
@@ -114,48 +114,48 @@ class InputClickable extends SimpleClickable {
   }
 }
 
-function searchClickables(view: Node): Clickable[] {
+function searchClickables(view: Node): L.List<Clickable> {
   if (!(view instanceof HTMLElement) || isInvisible(view)) {
-    return [];
+    return L.empty();
   }
 
   if (isClosedDock(view)) {
-    return [];
+    return L.empty();
   }
 
   if (isTreeView(view)) {
-    const links = <NodeListOf<HTMLElement>>view.querySelectorAll(
+    const links = view.querySelectorAll<HTMLElement>(
       ".tree-view .list-item:not(.selected)"
     );
-    return map(makeTreeViewClickable, links);
+    return L.map(makeTreeViewClickable, L.list(...links));
   }
 
   if (isTabs(view)) {
-    const tabs = <NodeListOf<HTMLElement>>view.querySelectorAll(
+    const tabs = view.querySelectorAll<HTMLElement>(
       ".tab-bar li.tab:not(.active)"
     );
-    return map(makeSimpleClickable, tabs);
+    return L.map(makeSimpleClickable, L.list(...tabs));
   }
   if (isEditor(view)) {
-    return [new EditorClickable(view)];
+    return L.list(new EditorClickable(view));
   }
 
   if (view.tagName === "INPUT") {
-    return [new InputClickable(view)];
+    return L.list(new InputClickable(view));
   }
 
   if (isGithubStatusBarTileController(view)) {
-    const githubBtns = <NodeListOf<HTMLElement>>view.querySelectorAll(
+    const githubBtns = view.querySelectorAll<HTMLElement>(
       ".github-branch, .github-PushPull"
     );
-    return map(makeTreeViewClickable, githubBtns);
+    return L.map(makeTreeViewClickable, L.list(...githubBtns));
   }
 
   if (clickableTags.includes(view.tagName)) {
-    return [new SimpleClickable(view)];
+    return L.list(new SimpleClickable(view));
   }
   const { childNodes } = view;
-  return flatMap(searchClickables, childNodes);
+  return L.chain(searchClickables, L.list(...childNodes));
 }
 
 function getClickables() {
@@ -163,8 +163,10 @@ function getClickables() {
 
   const clickables = searchClickables(view);
 
-  const tooltip = view.parentNode.querySelectorAll(".tooltip");
-  const tooltipClickables = flatMap(searchClickables, tooltip);
+  const tooltip = L.list(
+    ...(<HTMLElement>view.parentNode).querySelectorAll<HTMLElement>(".tooltip")
+  );
+  const tooltipClickables = L.chain(searchClickables, tooltip);
 
   // const dockToggles = view.querySelectorAll(".atom-dock-toggle-button");
   // for (const btn of dockToggles) {
@@ -174,7 +176,7 @@ function getClickables() {
   //     handler: () => {}
   //   });
   // }
-  return clickables.concat(tooltipClickables);
+  return L.concat(clickables, tooltipClickables);
 }
 
 function clearAllHints() {
@@ -305,7 +307,7 @@ function jump() {
   let removeHints: Array<() => void> = [];
   for (let i = 0; i < clickables.length; i++) {
     const seq = keySeqs[i];
-    const clickable = clickables[i];
+    const clickable = L.nth(i, clickables)!;
     const capitalize: boolean = atom.config.get("monkey-jump.capitalizeHint");
     const text = seq.join("");
     removeHints.push(

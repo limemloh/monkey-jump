@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "atom-ts-transpiler": "^1.4.3",
+    "list": "^2.0.8",
     "typescript": "^2.7.2"
   },
   "prettier": {},

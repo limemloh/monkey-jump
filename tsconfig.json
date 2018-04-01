@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "lib": ["DOM"],
+    "lib": ["DOM", "es6"],
     "strict": true,
     "moduleResolution": "node"
   },
