@@ -285,7 +285,7 @@ async function handleKeys(keymap: KeySeqMap<Clickable>) {
     pressed += key;
   }
   if (value === undefined) {
-    const k = atom.config.get("monkey.capitalizeHint")
+    const k = atom.config.get("monkey-jump.capitalizeHint")
       ? pressed.toUpperCase()
       : pressed;
     throw new MonkeyError(`No target for given key '${k}'`);
@@ -294,7 +294,7 @@ async function handleKeys(keymap: KeySeqMap<Clickable>) {
 }
 
 function jump() {
-  const hintKeys: string[] = atom.config.get("monkey.hintKeys").split("");
+  const hintKeys: string[] = atom.config.get("monkey-jump.hintKeys").split("");
   const clickables = getClickables();
   if (clickables.length < 1) {
     return;
@@ -306,7 +306,7 @@ function jump() {
   for (let i = 0; i < clickables.length; i++) {
     const seq = keySeqs[i];
     const clickable = clickables[i];
-    const capitalize: boolean = atom.config.get("monkey.capitalizeHint");
+    const capitalize: boolean = atom.config.get("monkey-jump.capitalizeHint");
     const text = seq.join("");
     removeHints.push(
       clickable.showHint(capitalize ? text.toUpperCase() : text)
@@ -315,7 +315,9 @@ function jump() {
   }
   handleKeys(keymap)
     .catch((e: Error) => {
-      const shouldMute: boolean = atom.config.get("monkey.muteNotifications");
+      const shouldMute: boolean = atom.config.get(
+        "monkey-jump.muteNotifications"
+      );
       if (!shouldMute && e instanceof MonkeyError) {
         atom.notifications.addInfo(e.message);
       } else {
