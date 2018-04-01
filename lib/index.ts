@@ -313,22 +313,24 @@ function jump() {
     );
     setKeySeq(keymap, seq, clickable);
   }
-  handleKeys(keymap)
-    .catch((e: Error) => {
-      const shouldMute: boolean = atom.config.get(
-        "monkey-jump.muteNotifications"
-      );
-      if (!shouldMute && e instanceof MonkeyError) {
-        atom.notifications.addInfo(e.message);
-      } else {
-        throw e;
-      }
-    })
-    .finally(() => {
-      for (const removeHint of removeHints) {
-        removeHint();
-      }
-    });
+
+  function cleanup() {
+    for (const removeHint of removeHints) {
+      removeHint();
+    }
+  }
+
+  handleKeys(keymap).then(cleanup, (e: Error) => {
+    cleanup();
+    const shouldMute: boolean = atom.config.get(
+      "monkey-jump.muteNotifications"
+    );
+    if (!shouldMute && e instanceof MonkeyError) {
+      atom.notifications.addInfo(e.message);
+    } else {
+      throw e;
+    }
+  });
 }
 
 type State = {};
