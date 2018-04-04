@@ -96,14 +96,7 @@ function makeTreeViewClickable(elm: HTMLElement): Clickable {
 
 class EditorClickable extends SimpleClickable {
   handler() {
-    const editors = atom.workspace.getTextEditors();
-    for (const editor of editors) {
-      const editorView = atom.views.getView(editor);
-      if (editorView === this.elm) {
-        const pane = atom.workspace.paneForItem(editor)!;
-        pane.activate();
-      }
-    }
+    this.elm.focus();
   }
 }
 
