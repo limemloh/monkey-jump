@@ -139,9 +139,9 @@ function searchClickables(view: Node): L.List<Clickable> {
 
   if (isGithubStatusBarTileController(view)) {
     const githubBtns = view.querySelectorAll<HTMLElement>(
-      ".github-branch, .github-PushPull"
+      ".github-branch, .github-PushPull, .github-ChangedFilesCount"
     );
-    return L.map(makeTreeViewClickable, L.list(...githubBtns));
+    return L.map(makeSimpleClickable, L.list(...githubBtns));
   }
 
   if (clickableTags.includes(view.tagName)) {
