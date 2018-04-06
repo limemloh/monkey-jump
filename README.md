@@ -18,3 +18,14 @@ apm install monkey-jump
 From anywhere in Atom press `ctrl-y`. Then press the sequence of characters shown in the label.
 
 To abort a jump, press any key not used in a sequence
+
+### Styling
+
+If you want to style the hints you could add something like this in your own `styles.less`
+
+```css
+.monkey-jump-hint {
+  background: black;
+  color: white;
+}
+```
