@@ -1,7 +1,7 @@
 {
   "name": "monkey-jump",
   "main": "./lib/index",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "description": "Use the keyboard to navigate everywhere in Atom",
   "keywords": [
     "atom",
