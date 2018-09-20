@@ -113,21 +113,21 @@ function nextKeydown(): Promise<string> {
   });
 }
 
-function removeAllInMap(keymap: KeySeqMap<Clickable>) {
+function clearHints(keymap: KeySeqMap<Clickable>) {
   for (const value of keymap.values()) {
     if (value instanceof Map) {
-      removeAllInMap(value);
+      clearHints(value);
     } else {
       value.clearHint();
     }
   }
 }
 
-function removeUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
+function clearUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
   for (const [key, value] of keymap.entries()) {
     if (key !== hintKey) {
       if (value instanceof Map) {
-        removeAllInMap(value);
+        clearHints(value);
       } else {
         value.clearHint();
       }
@@ -138,12 +138,12 @@ function removeUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
 async function handleKeys(keymap: KeySeqMap<Clickable>) {
   let pressed = "";
   const fstKey = await nextKeydown();
-  removeUnrelatedHints(keymap, fstKey);
+  clearUnrelatedHints(keymap, fstKey);
   let value = keymap.get(fstKey);
   pressed += fstKey;
   while (value instanceof Map) {
     const key = await nextKeydown();
-    removeUnrelatedHints(value, key);
+    clearUnrelatedHints(value, key);
     value = value.get(key);
     pressed += key;
   }
@@ -176,6 +176,7 @@ export function jump() {
   }
 
   handleKeys(keymap).catch((e: Error) => {
+    clearHints(keymap);
     const shouldMute: boolean = atom.config.get(
       "monkey-jump.muteNotifications"
     );
