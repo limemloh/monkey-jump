@@ -32,12 +32,12 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "atom-ts-transpiler": "^1.4.3",
-    "list": "^2.0.9",
-    "typescript": "^2.7.2"
+    "atom-ts-transpiler": "^1.5.2",
+    "list": "^2.0.14",
+    "typescript": "^3.0.3"
   },
   "prettier": {},
   "devDependencies": {
-    "@types/atom": "^1.25.0"
+    "@types/atom": "^1.28.0"
   }
 }
