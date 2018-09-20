@@ -3,7 +3,8 @@ import * as L from "list";
 const clickableTags = ["A", "TEXTAREA", "BUTTON"];
 
 export interface Clickable {
-  showHint: (hint: string) => () => void;
+  showHint: (hint: string) => void;
+  clearHint: () => void;
   handler: () => void;
 }
 
@@ -60,12 +61,13 @@ function showHint(elm: HTMLElement, hint: string): () => void {
 
 class SimpleClickable implements Clickable {
   constructor(protected elm: HTMLElement) {}
-  showHint(hint: string): () => void {
-    return showHint(this.elm, hint);
+  showHint(hint: string) {
+    this.clearHint = showHint(this.elm, hint);
   }
   handler() {
     this.elm.click();
   }
+  clearHint() {}
 }
 
 function makeSimpleClickable(elm: HTMLElement) {
@@ -98,7 +100,7 @@ class EditorClickable extends SimpleClickable {
 class InputClickable extends SimpleClickable {
   showHint(hint: string) {
     const elm = <HTMLElement>this.elm.parentNode;
-    return showHint(elm, hint);
+    this.clearHint = showHint(elm, hint);
   }
 }
 

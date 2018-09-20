@@ -113,13 +113,37 @@ function nextKeydown(): Promise<string> {
   });
 }
 
+function removeAllInMap(keymap: KeySeqMap<Clickable>) {
+  for (const value of keymap.values()) {
+    if (value instanceof Map) {
+      removeAllInMap(value);
+    } else {
+      value.clearHint();
+    }
+  }
+}
+
+function removeUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
+  for (const [key, value] of keymap.entries()) {
+    if (key !== hintKey) {
+      if (value instanceof Map) {
+        removeAllInMap(value);
+      } else {
+        value.clearHint();
+      }
+    }
+  }
+}
+
 async function handleKeys(keymap: KeySeqMap<Clickable>) {
   let pressed = "";
   const fstKey = await nextKeydown();
-  pressed += fstKey;
+  removeUnrelatedHints(keymap, fstKey);
   let value = keymap.get(fstKey);
+  pressed += fstKey;
   while (value instanceof Map) {
     const key = await nextKeydown();
+    removeUnrelatedHints(value, key);
     value = value.get(key);
     pressed += key;
   }
@@ -129,6 +153,7 @@ async function handleKeys(keymap: KeySeqMap<Clickable>) {
       : pressed;
     throw new MonkeyError(`No target for given key '${k}'`);
   }
+  value.clearHint();
   await value.handler();
 }
 
@@ -141,26 +166,16 @@ export function jump() {
   const keySeqs = generateKeySequences(clickables.length, hintKeys);
 
   let keymap = new Map();
-  let removeHints: Array<() => void> = [];
   for (let i = 0; i < clickables.length; i++) {
     const seq = keySeqs[i];
     const clickable = L.nth(i, clickables)!;
     const capitalize: boolean = atom.config.get("monkey-jump.capitalizeHint");
     const text = seq.join("");
-    removeHints.push(
-      clickable.showHint(capitalize ? text.toUpperCase() : text)
-    );
+    clickable.showHint(capitalize ? text.toUpperCase() : text);
     setKeySeq(keymap, seq, clickable);
   }
 
-  function cleanup() {
-    for (const removeHint of removeHints) {
-      removeHint();
-    }
-  }
-
-  handleKeys(keymap).then(cleanup, (e: Error) => {
-    cleanup();
+  handleKeys(keymap).catch((e: Error) => {
     const shouldMute: boolean = atom.config.get(
       "monkey-jump.muteNotifications"
     );
