@@ -1,12 +1,20 @@
 import * as L from "list";
+import { Target } from "./jump";
+
+export function getClickables() {
+  const view = atom.views.getView(atom.workspace);
+
+  const clickables = searchClickables(view);
+
+  const tooltip = L.list(
+    ...(<HTMLElement>view.parentNode).querySelectorAll<HTMLElement>(".tooltip")
+  );
+  const tooltipClickables = L.chain(searchClickables, tooltip);
+
+  return L.toArray(L.concat(clickables, tooltipClickables));
+}
 
 const clickableTags = ["A", "TEXTAREA", "BUTTON"];
-
-export interface Clickable {
-  showHint: (hint: string) => void;
-  clearHint: () => void;
-  handler: () => void;
-}
 
 function isClosedDock(view: HTMLElement) {
   if (view.tagName !== "ATOM-DOCK") {
@@ -59,7 +67,7 @@ function showHint(elm: HTMLElement, hint: string): () => void {
   return hintElm.remove.bind(hintElm);
 }
 
-class SimpleClickable implements Clickable {
+class SimpleClickable implements Target {
   constructor(protected elm: HTMLElement) {}
   showHint(hint: string) {
     this.clearHint = showHint(this.elm, hint);
@@ -83,7 +91,7 @@ class FileClickable extends SimpleClickable {
   }
 }
 
-function makeTreeViewClickable(elm: HTMLElement): Clickable {
+function makeTreeViewClickable(elm: HTMLElement): Target {
   if (elm.classList.contains("file")) {
     return new FileClickable(elm);
   } else {
@@ -104,7 +112,7 @@ class InputClickable extends SimpleClickable {
   }
 }
 
-export function searchClickables(view: Node): L.List<Clickable> {
+export function searchClickables(view: Node): L.List<Target> {
   if (!(view instanceof HTMLElement) || isInvisible(view)) {
     return L.empty();
   }

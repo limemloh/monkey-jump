@@ -1,20 +1,10 @@
-import * as L from "list";
-import { searchClickables, Clickable } from "./clickables";
+export interface Target {
+  showHint: (hint: string) => void;
+  clearHint: () => void;
+  handler: () => void;
+}
 
 class MonkeyError extends Error {}
-
-function getClickables() {
-  const view = atom.views.getView(atom.workspace);
-
-  const clickables = searchClickables(view);
-
-  const tooltip = L.list(
-    ...(<HTMLElement>view.parentNode).querySelectorAll<HTMLElement>(".tooltip")
-  );
-  const tooltipClickables = L.chain(searchClickables, tooltip);
-
-  return L.concat(clickables, tooltipClickables);
-}
 
 export function clearAllHints() {
   const view = atom.views.getView(atom.workspace);
@@ -65,10 +55,10 @@ function generateKeySequences(nodesLength: number, keys: string[]) {
   return seqs;
 }
 
-type KeySeqMap<A> = Map<string, KeySeqMapRec<A> | A>;
+type KeySeqMap = Map<string, KeySeqMapRec<Target> | Target>;
 interface KeySeqMapRec<A> extends Map<string, KeySeqMapRec<A> | A> {}
 
-function setKeySeq<A>(keymap: KeySeqMap<A>, keySeq: string[], value: A) {
+function setKeySeq<A>(keymap: KeySeqMap, keySeq: string[], value: A) {
   let modKeymap: any = keymap;
   let j = 0;
   for (; j < keySeq.length - 1; j++) {
@@ -113,7 +103,7 @@ function nextKeydown(): Promise<string> {
   });
 }
 
-function clearHints(keymap: KeySeqMap<Clickable>) {
+function clearHints(keymap: KeySeqMap) {
   for (const value of keymap.values()) {
     if (value instanceof Map) {
       clearHints(value);
@@ -123,7 +113,7 @@ function clearHints(keymap: KeySeqMap<Clickable>) {
   }
 }
 
-function clearUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
+function clearUnrelatedHints(keymap: KeySeqMap, hintKey: string) {
   for (const [key, value] of keymap.entries()) {
     if (key !== hintKey) {
       if (value instanceof Map) {
@@ -135,7 +125,7 @@ function clearUnrelatedHints(keymap: KeySeqMap<Clickable>, hintKey: string) {
   }
 }
 
-async function handleKeys(keymap: KeySeqMap<Clickable>) {
+async function handleKeys(keymap: KeySeqMap) {
   let pressed = "";
   const fstKey = await nextKeydown();
   clearUnrelatedHints(keymap, fstKey);
@@ -157,18 +147,17 @@ async function handleKeys(keymap: KeySeqMap<Clickable>) {
   await value.handler();
 }
 
-export function jump() {
-  const hintKeys: string[] = atom.config.get("monkey-jump.hintKeys").split("");
-  const clickables = getClickables();
-  if (clickables.length < 1) {
+export function jumpTargets(targets: Target[]) {
+  if (targets.length < 1) {
     return;
   }
-  const keySeqs = generateKeySequences(clickables.length, hintKeys);
+  const hintKeys: string[] = atom.config.get("monkey-jump.hintKeys").split("");
+  const keySeqs = generateKeySequences(targets.length, hintKeys);
 
   let keymap = new Map();
-  for (let i = 0; i < clickables.length; i++) {
+  for (let i = 0; i < targets.length; i++) {
     const seq = keySeqs[i];
-    const clickable = L.nth(i, clickables)!;
+    const clickable = targets[i];
     const capitalize: boolean = atom.config.get("monkey-jump.capitalizeHint");
     const text = seq.join("");
     clickable.showHint(capitalize ? text.toUpperCase() : text);

@@ -1,5 +1,6 @@
 import { CompositeDisposable } from "atom";
-import { jump, clearAllHints } from "./jump";
+import { jumpTargets, clearAllHints } from "./jump";
+import { getClickables } from "./clickables";
 
 const disposables = new CompositeDisposable();
 
@@ -44,3 +45,8 @@ export const config = {
     default: "fjdksla;"
   }
 };
+
+export function jump() {
+  const clickables = getClickables();
+  jumpTargets(clickables);
+}
