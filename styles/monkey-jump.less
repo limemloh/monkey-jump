@@ -13,6 +13,17 @@
   padding: 0.25em;
   line-height: normal;
   border-radius: 3px;
-  background: fade(@background-color-info, 90%);
+  background: fade(@background-color-info, 70%);
   color: @text-color;
+
+  &.selected {
+    background: fade(@background-color-success, 90%);
+    color: @text-color;
+  }
+
+  span.pressed {
+    color: red;
+  }
+  span.unpressed {
+  }
 }

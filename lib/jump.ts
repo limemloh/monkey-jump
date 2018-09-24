@@ -1,7 +1,6 @@
 export interface Target {
-  showHint: (hint: string) => void;
+  showHint: (hint: HTMLElement) => void;
   clearHint: () => void;
-  handler: () => void;
 }
 
 class MonkeyError extends Error {}
@@ -55,10 +54,33 @@ function generateKeySequences(nodesLength: number, keys: string[]) {
   return seqs;
 }
 
-type KeySeqMap = Map<string, KeySeqMapRec<Target> | Target>;
+type KeySeqElm<A> = { value: A; hintElm: HTMLElement };
+type KeySeqMap<A extends Target> = Map<
+  string,
+  KeySeqMapRec<KeySeqElm<A>> | KeySeqElm<A>
+>;
 interface KeySeqMapRec<A> extends Map<string, KeySeqMapRec<A> | A> {}
 
-function setKeySeq<A>(keymap: KeySeqMap, keySeq: string[], value: A) {
+function* forEach<A extends Target>(
+  keymap: KeySeqMap<A>
+): IterableIterator<KeySeqElm<A>> {
+  let map = keymap;
+  for (const elm of keymap.values()) {
+    if (elm instanceof Map) {
+      for (const e of forEach(elm)) {
+        yield e;
+      }
+    } else {
+      yield elm;
+    }
+  }
+}
+
+function setKeySeq<A extends Target>(
+  keymap: KeySeqMap<A>,
+  keySeq: string[],
+  value: A
+) {
   let modKeymap: any = keymap;
   let j = 0;
   for (; j < keySeq.length - 1; j++) {
@@ -71,25 +93,59 @@ function setKeySeq<A>(keymap: KeySeqMap, keySeq: string[], value: A) {
       modKeymap = m;
     }
   }
-  modKeymap.set(keySeq[j], value);
+  const text = keySeq.join("");
+  const hintElm = createHintElm(
+    atom.config.get("monkey-jump.capitalizeHint") ? text.toUpperCase() : text
+  );
+  modKeymap.set(keySeq[j], { value, hintElm });
 }
 
-function nextKeydown(): Promise<string> {
+function createHintElm(hintText: string) {
+  const hintElm = document.createElement("code");
+  hintElm.classList.add("monkey-jump-hint");
+
+  const hintPressed = document.createElement("span");
+  hintPressed.classList.add("pressed");
+  hintElm.appendChild(hintPressed);
+
+  const hintUnpressed = document.createElement("span");
+  hintUnpressed.classList.add("unpressed");
+  hintElm.appendChild(hintUnpressed);
+
+  hintUnpressed.innerHTML = hintText;
+  return hintElm;
+}
+
+function updateHint(hintElm: HTMLElement) {
+  const [pressed, unpressed] = hintElm.children;
+  if (unpressed.innerHTML.length > 0) {
+    pressed.innerHTML = pressed.innerHTML + unpressed.innerHTML[0];
+    unpressed.innerHTML = unpressed.innerHTML.substring(1);
+  }
+}
+
+function resetHint(hintElm: HTMLElement) {
+  const [pressed, unpressed] = hintElm.children;
+  unpressed.innerHTML = pressed.innerHTML + unpressed.innerHTML;
+  pressed.innerHTML = "";
+}
+
+function nextKeydown(): Promise<string | undefined> {
   const view = atom.views.getView(atom.workspace);
   return new Promise((resolve, reject) => {
     function keyListener(keyEvent: KeyboardEvent) {
       const { key, ctrlKey, shiftKey, altKey, metaKey } = keyEvent;
+      view.removeEventListener("mousedown", mouseListener);
       if (ctrlKey || shiftKey || altKey || metaKey) {
-        reject(new MonkeyError("Modifier pressed"));
+        resolve(undefined);
       }
       keyEvent.preventDefault();
       keyEvent.stopPropagation();
-      view.removeEventListener("mousedown", mouseListener);
       resolve(key);
     }
     function mouseListener(mouseEvent: MouseEvent) {
       view.removeEventListener("keydown", keyListener);
-      reject(new MonkeyError("Mouse clicked"));
+      resolve(undefined);
     }
 
     view.addEventListener("keydown", keyListener, {
@@ -103,76 +159,123 @@ function nextKeydown(): Promise<string> {
   });
 }
 
-function clearHints(keymap: KeySeqMap) {
-  for (const value of keymap.values()) {
-    if (value instanceof Map) {
-      clearHints(value);
-    } else {
-      value.clearHint();
-    }
+function clearHints<A extends Target>(keymap: KeySeqMap<A>) {
+  for (const { value } of forEach(keymap)) {
+    value.clearHint();
   }
 }
 
-function clearUnrelatedHints(keymap: KeySeqMap, hintKey: string) {
-  for (const [key, value] of keymap.entries()) {
+function clearUnrelatedHints<A extends Target>(
+  keymap: KeySeqMap<A>,
+  hintKey: string
+) {
+  for (const [key, elm] of keymap.entries()) {
     if (key !== hintKey) {
-      if (value instanceof Map) {
-        clearHints(value);
+      if (elm instanceof Map) {
+        clearHints(elm);
       } else {
-        value.clearHint();
+        elm.value.clearHint();
       }
     }
   }
 }
 
-async function handleKeys(keymap: KeySeqMap) {
-  let pressed = "";
-  const fstKey = await nextKeydown();
-  clearUnrelatedHints(keymap, fstKey);
-  let value = keymap.get(fstKey);
-  pressed += fstKey;
-  while (value instanceof Map) {
-    const key = await nextKeydown();
-    clearUnrelatedHints(value, key);
-    value = value.get(key);
-    pressed += key;
+function showHintsInMap<A extends Target>(keymap: KeySeqMap<A>) {
+  for (const { value, hintElm } of forEach(keymap)) {
+    value.showHint(hintElm);
+    resetHint(hintElm);
   }
-  if (value === undefined) {
-    const k = atom.config.get("monkey-jump.capitalizeHint")
-      ? pressed.toUpperCase()
-      : pressed;
-    throw new MonkeyError(`No target for given key '${k}'`);
-  }
-  value.clearHint();
-  await value.handler();
 }
 
-export function jumpTargets(targets: Target[]) {
+function updateHints<A extends Target>(keymap: KeySeqMap<A>, key: string) {
+  for (const { hintElm } of forEach(keymap)) {
+    updateHint(hintElm);
+  }
+}
+
+async function handleKeys<A extends Target>(
+  keymap: KeySeqMap<A>
+): Promise<A | void> {
+  showHintsInMap(keymap);
+  let pressed = "";
+  const fstKey = await nextKeydown();
+  if (fstKey === undefined) {
+    return undefined;
+  }
+  clearUnrelatedHints(keymap, fstKey);
+  updateHints(keymap, fstKey);
+  let elm = keymap.get(fstKey);
+  pressed += fstKey;
+  while (elm instanceof Map) {
+    const key = await nextKeydown();
+    if (key === undefined) {
+      return undefined;
+    }
+    clearUnrelatedHints(elm, key);
+    updateHints(elm, key);
+    elm = elm.get(key);
+    pressed += key;
+  }
+  if (elm === undefined) {
+    return undefined;
+  }
+  elm.value.clearHint();
+  return elm.value;
+}
+
+export function jumpTargets<A extends Target>(targets: A[]): Promise<A | void> {
   if (targets.length < 1) {
-    return;
+    throw new Error("Missing targets to jump");
   }
   const hintKeys: string[] = atom.config.get("monkey-jump.hintKeys").split("");
   const keySeqs = generateKeySequences(targets.length, hintKeys);
 
-  let keymap = new Map();
+  let keymap: KeySeqMap<A> = new Map();
   for (let i = 0; i < targets.length; i++) {
     const seq = keySeqs[i];
-    const clickable = targets[i];
-    const capitalize: boolean = atom.config.get("monkey-jump.capitalizeHint");
-    const text = seq.join("");
-    clickable.showHint(capitalize ? text.toUpperCase() : text);
-    setKeySeq(keymap, seq, clickable);
+    const target = targets[i];
+    setKeySeq(keymap, seq, target);
   }
 
-  handleKeys(keymap).catch((e: Error) => {
+  const t = handleKeys(keymap);
+  if (t === undefined) {
     clearHints(keymap);
-    const shouldMute: boolean = atom.config.get(
-      "monkey-jump.muteNotifications"
-    );
-    if (!shouldMute && e instanceof MonkeyError) {
-      atom.notifications.addInfo(e.message);
-    } else {
-      throw e;
+  }
+  return t;
+}
+
+export interface SelectableTarget extends Target {
+  toggleSelection: () => void;
+}
+
+export async function jumpSelectTargets<A extends SelectableTarget>(
+  targets: A[]
+): Promise<A[]> {
+  if (targets.length < 1) {
+    throw new Error("Missing targets to jump");
+  }
+  const hintKeys: string[] = atom.config.get("monkey-jump.hintKeys").split("");
+  const keySeqs = generateKeySequences(targets.length, hintKeys);
+
+  let keymap: KeySeqMap<A> = new Map();
+  for (let i = 0; i < targets.length; i++) {
+    const seq = keySeqs[i];
+    const target = targets[i];
+    setKeySeq(keymap, seq, target);
+  }
+
+  let selected: A[] = [];
+  while (true) {
+    const t = await handleKeys(keymap);
+    if (t === undefined) {
+      break;
     }
-  });
+    t.toggleSelection();
+    if (selected.includes(t)) {
+      selected.splice(selected.indexOf(t), 1);
+    } else {
+      selected.push(t);
+    }
+  }
+  return selected;
 }

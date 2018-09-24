@@ -1,6 +1,10 @@
 import * as L from "list";
 import { Target } from "./jump";
 
+export interface Clickable extends Target {
+  handler: () => void;
+}
+
 export function getClickables() {
   const view = atom.views.getView(atom.workspace);
 
@@ -67,15 +71,27 @@ function showHint(elm: HTMLElement, hint: string): () => void {
   return hintElm.remove.bind(hintElm);
 }
 
-class SimpleClickable implements Target {
+class SimpleClickable implements Clickable {
   constructor(protected elm: HTMLElement) {}
-  showHint(hint: string) {
-    this.clearHint = showHint(this.elm, hint);
+  private hintElm?: HTMLElement;
+  private oldPosition: string | null = null;
+  showHint(hint: HTMLElement) {
+    this.hintElm = hint;
+    this.elm.appendChild(hint);
+    if (getComputedStyle(this.elm).position === "static") {
+      this.oldPosition = this.elm.style.position;
+      this.elm.style.position = "relative";
+    }
+  }
+  clearHint() {
+    if (this.hintElm !== undefined) {
+      this.elm.style.position = this.oldPosition;
+      this.hintElm.remove();
+    }
   }
   handler() {
     this.elm.click();
   }
-  clearHint() {}
 }
 
 function makeSimpleClickable(elm: HTMLElement) {
@@ -91,7 +107,7 @@ class FileClickable extends SimpleClickable {
   }
 }
 
-function makeTreeViewClickable(elm: HTMLElement): Target {
+function makeTreeViewClickable(elm: HTMLElement): Clickable {
   if (elm.classList.contains("file")) {
     return new FileClickable(elm);
   } else {
@@ -106,13 +122,13 @@ class EditorClickable extends SimpleClickable {
 }
 
 class InputClickable extends SimpleClickable {
-  showHint(hint: string) {
+  showHint(hint: HTMLElement) {
     const elm = <HTMLElement>this.elm.parentNode;
-    this.clearHint = showHint(elm, hint);
+    elm.appendChild(hint);
   }
 }
 
-export function searchClickables(view: Node): L.List<Target> {
+export function searchClickables(view: Node): L.List<Clickable> {
   if (!(view instanceof HTMLElement) || isInvisible(view)) {
     return L.empty();
   }
