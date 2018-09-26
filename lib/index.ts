@@ -13,8 +13,8 @@ export function activate(state: State) {
     atom.commands.add("atom-workspace", {
       "monkey:jump": jumpClickables,
       "monkey:jump-word": jumpWord,
-      "monkey:select-multiple-words": selectMultipleWords,
       "monkey:jump-line": jumpLine,
+      "monkey:select-multiple-words": selectMultipleWords,
       "monkey:select-multiple-lines": selectMultipleLines,
       "monkey:select-selection": selectSelection,
       "monkey:select-multiple-selections": selectMultipleSelections,

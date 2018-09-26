@@ -2,10 +2,10 @@
   "atom-workspace": {
     "ctrl-y ctrl-y": "monkey:jump",
     "ctrl-y w": "monkey:jump-word",
-    "ctrl-y ctrl-w": "monkey:select-multiple-words",
     "ctrl-y l": "monkey:jump-line",
-    "ctrl-y ctrl-l": "monkey:select-multiple-lines",
     "ctrl-y s": "monkey:select-selection",
+    "ctrl-y ctrl-w": "monkey:select-multiple-words",
+    "ctrl-y ctrl-l": "monkey:select-multiple-lines",
     "ctrl-y ctrl-s": "monkey:select-multiple-selections",
     "ctrl-y alt-s": "monkey:deselect-multiple-selections"
   }

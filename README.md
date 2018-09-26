@@ -35,12 +35,27 @@ Select one of multiple selections.
 
 ## <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-select-selection.gif?raw=true" width="500" >
 
+#### `monkey:select-multiple-words`
+
+Select multiple words. When you are done selecting press any non-target key to execute.
+<br>Default: `ctrl-y ctrl-w`
+
+#### `monkey:select-multiple-lines`
+
+Select multiple lines. When you are done selecting press any non-target key to execute.
+<br>Default: `ctrl-y ctrl-l`
+
 #### `monkey:select-multiple-selections`
 
-Select multiple selections and discards the rest. After the selecting press any non-target key to execute.
+Select multiple selections and discards the rest. When you are done selecting press any non-target key to execute.
 <br>Default: `ctrl-y ctrl-s`
 
 <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-select-multiple-selections.gif?raw=true" width="500" >
+
+#### `monkey:deselect-multiple-selections`
+
+Select multiple selections to discards and keep the rest. When you are done selecting press any non-target key to execute.
+<br>Default: `ctrl-y alt-s`
 
 ### Installation
 
