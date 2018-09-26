@@ -11,7 +11,9 @@ export function getClickables() {
   const clickables = searchClickables(view);
 
   const tooltip = L.list(
-    ...(<HTMLElement>view.parentNode).querySelectorAll<HTMLElement>(".tooltip")
+    ...(<HTMLElement>view.parentNode)
+      .querySelectorAll<HTMLElement>(".tooltip")
+      .values()
   );
   const tooltipClickables = L.chain(searchClickables, tooltip);
 
@@ -55,37 +57,26 @@ function isGithubStatusBarTileController(node: HTMLElement) {
   return node.classList.contains("github-StatusBarTileController");
 }
 
-function showHint(elm: HTMLElement, hint: string): () => void {
-  const hintElm = document.createElement("code");
-  hintElm.classList.add("monkey-jump-hint");
-  hintElm.innerText = hint;
-  elm.appendChild(hintElm);
-  if (getComputedStyle(elm).position === "static") {
-    let old = elm.style.position;
-    elm.style.position = "relative";
-    return () => {
-      hintElm.remove();
-      elm.style.position = old;
-    };
-  }
-  return hintElm.remove.bind(hintElm);
-}
-
 class SimpleClickable implements Clickable {
   constructor(protected elm: HTMLElement) {}
-  private hintElm?: HTMLElement;
+  public hintElm?: HTMLElement;
+  private shouldReposition = false;
   private oldPosition: string | null = null;
   showHint(hint: HTMLElement) {
     this.hintElm = hint;
+    hint.classList.add("clickable");
     this.elm.appendChild(hint);
-    if (getComputedStyle(this.elm).position === "static") {
+    this.shouldReposition = getComputedStyle(this.elm).position === "static";
+    if (this.shouldReposition) {
       this.oldPosition = this.elm.style.position;
       this.elm.style.position = "relative";
     }
   }
   clearHint() {
     if (this.hintElm !== undefined) {
-      this.elm.style.position = this.oldPosition;
+      if (this.shouldReposition) {
+        this.elm.style.position = this.oldPosition;
+      }
       this.hintElm.remove();
     }
   }
@@ -123,6 +114,7 @@ class EditorClickable extends SimpleClickable {
 
 class InputClickable extends SimpleClickable {
   showHint(hint: HTMLElement) {
+    this.hintElm = hint;
     const elm = <HTMLElement>this.elm.parentNode;
     elm.appendChild(hint);
   }

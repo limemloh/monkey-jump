@@ -1,8 +1,7 @@
-import { CompositeDisposable, Range } from "atom";
-import { jumpTargets, clearAllHints, jumpSelectTargets } from "./jump";
+import { CompositeDisposable } from "atom";
+import { selectTargets, clearAllHints, selectMultipleTargets } from "./jump";
 import { getClickables } from "./clickables";
-import { getRanges } from "./ranges";
-import { wordsInSelection } from "./in-selection";
+import { getRanges, getWords, getLines } from "./ranges";
 
 const disposables = new CompositeDisposable();
 
@@ -12,10 +11,11 @@ export function activate(state: State) {
   disposables.add(
     atom.commands.add("atom-workspace", {
       "monkey:jump": jumpClickables,
-      "monkey:Jump Selections": jumpSelections,
-      "monkey:Clear hints": clearAllHints,
-      "monkey:Words In Selection": wordsInSelection,
-      "monkey:Multi jump selection": selectTargets
+      "monkey:jump-word": jumpWord,
+      "monkey:jump-line": jumpLine,
+      "monkey:select-selection": selectSelection,
+      "monkey:select-multiple-selections": selectMultipleSelections,
+      "monkey:clear-hints": clearAllHints
     })
   );
 }
@@ -33,7 +33,7 @@ export const config = {
     title: "Capitalize hints",
     description: "Capitalize the jump targets",
     type: "boolean",
-    default: false
+    default: true
   },
   hintKeys: {
     title: "Hint keys",
@@ -45,28 +45,45 @@ export const config = {
 };
 
 async function jumpClickables() {
-  const e = atom.workspace.getActiveTextEditor()!;
   const clickables = getClickables();
-  const target = await jumpTargets(clickables);
+  const target = await selectTargets(clickables);
   if (target !== undefined) {
     target.handler();
   }
 }
 
-async function jumpSelections() {
-  const targets = getRanges();
-  const target = await jumpTargets(targets);
+async function selectSelection() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getRanges(textEditor);
+  const target = await selectTargets(targets);
   if (target !== undefined) {
-    const textEditor = atom.workspace.getActiveTextEditor()!;
     textEditor.setSelectedScreenRange(target.range);
   }
 }
 
-async function selectTargets() {
-  const targets = getRanges();
-  const selected = await jumpSelectTargets(targets);
+async function jumpWord() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getWords(textEditor);
+  const target = await selectTargets(targets);
+  if (target !== undefined) {
+    textEditor.setCursorBufferPosition(target.range.start);
+  }
+}
+
+async function jumpLine() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getLines(textEditor);
+  const target = await selectTargets(targets);
+  if (target !== undefined) {
+    textEditor.setCursorBufferPosition(target.range.start);
+  }
+}
+
+async function selectMultipleSelections() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getRanges(textEditor);
+  const selected = await selectMultipleTargets(targets);
   if (selected.length > 0) {
-    const textEditor = atom.workspace.getActiveTextEditor()!;
     textEditor.setSelectedScreenRanges(selected.map(x => x.range));
   }
 }

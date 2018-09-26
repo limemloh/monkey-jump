@@ -223,7 +223,9 @@ async function handleKeys<A extends Target>(
   return elm.value;
 }
 
-export function jumpTargets<A extends Target>(targets: A[]): Promise<A | void> {
+export async function selectTargets<A extends Target>(
+  targets: A[]
+): Promise<A | void> {
   if (targets.length < 1) {
     throw new Error("Missing targets to jump");
   }
@@ -237,7 +239,7 @@ export function jumpTargets<A extends Target>(targets: A[]): Promise<A | void> {
     setKeySeq(keymap, seq, target);
   }
 
-  const t = handleKeys(keymap);
+  const t = await handleKeys(keymap);
   if (t === undefined) {
     clearHints(keymap);
   }
@@ -248,7 +250,7 @@ export interface SelectableTarget extends Target {
   toggleSelection: () => void;
 }
 
-export async function jumpSelectTargets<A extends SelectableTarget>(
+export async function selectMultipleTargets<A extends SelectableTarget>(
   targets: A[]
 ): Promise<A[]> {
   if (targets.length < 1) {

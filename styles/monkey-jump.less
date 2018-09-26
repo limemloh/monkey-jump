@@ -5,24 +5,34 @@
 @import "ui-variables";
 
 .monkey-jump-hint {
-  position: absolute;
   pointer-events: none;
-  left: 0;
-  top: 0;
-  z-index: 2147483647;
   padding: 0.25em;
-  line-height: normal;
   border-radius: 3px;
-  background: fade(@background-color-info, 70%);
+  border: 1px solid @button-border-color;
+  background: fade(@button-background-color, 90%);
   color: @text-color;
+  position: absolute;
 
   &.selected {
-    background: fade(@background-color-success, 90%);
+    background: fade(@button-background-color-selected, 90%);
     color: @text-color;
   }
 
+  &.clickable {
+    left: 0;
+    top: 0;
+    z-index: 2147483647;
+    line-height: normal;
+  }
+
+  &.range {
+    top: -1.8em;
+    font-size: 0.8em;
+    padding: 0.1em;
+  }
+
   span.pressed {
-    color: red;
+    color: fade(@text-color, 50%);
   }
   span.unpressed {
   }

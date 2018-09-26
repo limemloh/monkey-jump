@@ -5,19 +5,48 @@
 
 _Use the keyboard to navigate everywhere in Atom._
 
-![Monkey Jump Screenshot](https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-jump-demo1.gif?raw=true)
+## Features
+
+#### `monkey:jump`
+
+Click on any clickable GUI component in Atom.
+<br>Default: `ctrl-y ctrl-y`
+
+## <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-jump.gif?raw=true" width="500" >
+
+#### `monkey:jump-word`
+
+Jump to any word in the buffer.
+<br>Default: `ctrl-y w`
+
+## <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-jump-word.gif?raw=true" width="500" >
+
+#### `monkey:jump-line`
+
+Jump to any line in the buffer.
+<br>Default: `ctrl-y l`
+
+## <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-jump-line.gif?raw=true" width="500" >
+
+#### `monkey:select-selection`
+
+Select one of multiple selections.
+<br>Default: `ctrl-y s`
+
+## <img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-select-selection.gif?raw=true" width="500" >
+
+#### `monkey:select-multiple-selections`
+
+Select multiple selections and discards the rest. After the selecting press any non-target key to execute.
+<br>Default: `ctrl-y ctrl-s`
+
+<img src="https://github.com/limemloh/monkey-jump/blob/master/resources/monkey-select-multiple-selections.gif?raw=true" width="500" >
 
 ### Installation
 
 ```
 apm install monkey-jump
 ```
-
-### Usage
-
-From anywhere in Atom press `ctrl-y`. Then press the sequence of characters shown in the label.
-
-To abort a jump, press any key not used in a sequence
 
 ### Styling
 
@@ -29,3 +58,5 @@ If you want to style the hints you could add something like this in your own `st
   color: white;
 }
 ```
+
+for more styling options take a look at the default stylesheet

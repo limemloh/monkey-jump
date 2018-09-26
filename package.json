@@ -11,7 +11,13 @@
     "monkey"
   ],
   "activationCommands": {
-    "atom-workspace": ["monkey:jump", "monkey:Jump Selections", "monkey:Words In Selection"]
+    "atom-workspace": [
+      "monkey:jump",
+      "monkey:jump-word",
+      "monkey:jump-line",
+      "monkey:select-selection",
+      "monkey:select-multiple-selection"
+    ]
   },
   "atomTranspilers": [
     {
