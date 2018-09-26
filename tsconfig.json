@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "lib": ["DOM", "es6"],
+    "lib": ["DOM", "es6", "es2016.array.include"],
     "strict": true,
     "moduleResolution": "node"
   },

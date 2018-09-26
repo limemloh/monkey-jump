@@ -11,9 +11,7 @@ export function getClickables() {
   const clickables = searchClickables(view);
 
   const tooltip = L.list(
-    ...(<HTMLElement>view.parentNode)
-      .querySelectorAll<HTMLElement>(".tooltip")
-      .values()
+    ...(<HTMLElement>view.parentNode).querySelectorAll<HTMLElement>(".tooltip")
   );
   const tooltipClickables = L.chain(searchClickables, tooltip);
 

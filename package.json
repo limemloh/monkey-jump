@@ -14,9 +14,12 @@
     "atom-workspace": [
       "monkey:jump",
       "monkey:jump-word",
+      "monkey:select-multiple-words",
       "monkey:jump-line",
+      "monkey:select-multiple-lines",
       "monkey:select-selection",
-      "monkey:select-multiple-selection"
+      "monkey:select-multiple-selections",
+      "monkey:deselect-multiple-selections"
     ]
   },
   "atomTranspilers": [

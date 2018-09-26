@@ -1,12 +1,13 @@
 import { Range, DisplayMarker, TextEditor } from "atom";
 import { Target, SelectableTarget } from "./jump";
+import { getVisibleRowRange } from "./utils";
 
 export class RangeTarget implements SelectableTarget {
   constructor(public textEditor: TextEditor, public range: Range) {}
   private hintElm?: HTMLElement;
   private marker: DisplayMarker | undefined;
   showHint(hint: HTMLElement) {
-    this.marker = this.textEditor.markScreenRange(this.range, {
+    this.marker = this.textEditor.markBufferPosition(this.range.start, {
       invalidate: "touch"
     });
 
@@ -35,11 +36,6 @@ export function getRanges(textEditor: TextEditor) {
     .map(range => new RangeTarget(textEditor, range));
 }
 
-function getVisibleRowRange(editor: TextEditor): [number, number] {
-  // @ts-ignore
-  return editor.element.getVisibleRowRange();
-}
-
 const wordRegExp = /\w+/g;
 
 export function getWords(editor: TextEditor) {
@@ -59,7 +55,8 @@ export function getLines(editor: TextEditor) {
   const [first, last] = getVisibleRowRange(editor);
   let lines = [];
   for (let i = first; i < last; i++) {
-    lines.push(rangeToTarget(new Range([i, 0], [i, 0])));
+    const c = editor.lineTextForScreenRow(i).length;
+    lines.push(new RangeTarget(editor, new Range([i, 0], [i, c])));
   }
   return lines;
 }

@@ -1,7 +1,8 @@
-import { CompositeDisposable } from "atom";
-import { selectTargets, clearAllHints, selectMultipleTargets } from "./jump";
+import { CompositeDisposable, TextEditor } from "atom";
+import { selectTarget, clearAllHints, selectMultipleTargets } from "./jump";
 import { getClickables } from "./clickables";
 import { getRanges, getWords, getLines } from "./ranges";
+import { flatMap, focusEditor, isEditorVisible } from "./utils";
 
 const disposables = new CompositeDisposable();
 
@@ -12,9 +13,12 @@ export function activate(state: State) {
     atom.commands.add("atom-workspace", {
       "monkey:jump": jumpClickables,
       "monkey:jump-word": jumpWord,
+      "monkey:select-multiple-words": selectMultipleWords,
       "monkey:jump-line": jumpLine,
+      "monkey:select-multiple-lines": selectMultipleLines,
       "monkey:select-selection": selectSelection,
       "monkey:select-multiple-selections": selectMultipleSelections,
+      "monkey:deselect-multiple-selections": deselectMultipleSelections,
       "monkey:clear-hints": clearAllHints
     })
   );
@@ -46,36 +50,56 @@ export const config = {
 
 async function jumpClickables() {
   const clickables = getClickables();
-  const target = await selectTargets(clickables);
+  const target = await selectTarget(clickables);
   if (target !== undefined) {
     target.handler();
+  }
+}
+
+async function jumpWord() {
+  const editors = atom.workspace.getTextEditors().filter(isEditorVisible);
+  const targets = flatMap(getWords, editors);
+  const target = await selectTarget(targets);
+  if (target !== undefined) {
+    focusEditor(target.textEditor);
+    target.textEditor.setCursorBufferPosition(target.range.start);
+  }
+}
+
+async function selectMultipleWords() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getWords(textEditor);
+  const selected = await selectMultipleTargets(targets);
+  if (selected.length > 0) {
+    textEditor.setSelectedScreenRanges(selected.map(x => x.range));
+  }
+}
+
+async function jumpLine() {
+  const editors = atom.workspace.getTextEditors().filter(isEditorVisible);
+  const targets = flatMap(getLines, editors);
+  const target = await selectTarget(targets);
+  if (target !== undefined) {
+    focusEditor(target.textEditor);
+    target.textEditor.setCursorBufferPosition(target.range.start);
+  }
+}
+
+async function selectMultipleLines() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getLines(textEditor);
+  const selected = await selectMultipleTargets(targets);
+  if (selected.length > 0) {
+    textEditor.setSelectedScreenRanges(selected.map(x => x.range));
   }
 }
 
 async function selectSelection() {
   const textEditor = atom.workspace.getActiveTextEditor()!;
   const targets = getRanges(textEditor);
-  const target = await selectTargets(targets);
+  const target = await selectTarget(targets);
   if (target !== undefined) {
     textEditor.setSelectedScreenRange(target.range);
-  }
-}
-
-async function jumpWord() {
-  const textEditor = atom.workspace.getActiveTextEditor()!;
-  const targets = getWords(textEditor);
-  const target = await selectTargets(targets);
-  if (target !== undefined) {
-    textEditor.setCursorBufferPosition(target.range.start);
-  }
-}
-
-async function jumpLine() {
-  const textEditor = atom.workspace.getActiveTextEditor()!;
-  const targets = getLines(textEditor);
-  const target = await selectTargets(targets);
-  if (target !== undefined) {
-    textEditor.setCursorBufferPosition(target.range.start);
   }
 }
 
@@ -83,6 +107,15 @@ async function selectMultipleSelections() {
   const textEditor = atom.workspace.getActiveTextEditor()!;
   const targets = getRanges(textEditor);
   const selected = await selectMultipleTargets(targets);
+  if (selected.length > 0) {
+    textEditor.setSelectedScreenRanges(selected.map(x => x.range));
+  }
+}
+
+async function deselectMultipleSelections() {
+  const textEditor = atom.workspace.getActiveTextEditor()!;
+  const targets = getRanges(textEditor);
+  const selected = await selectMultipleTargets(targets, { selected: true });
   if (selected.length > 0) {
     textEditor.setSelectedScreenRanges(selected.map(x => x.range));
   }

@@ -3,8 +3,6 @@ export interface Target {
   clearHint: () => void;
 }
 
-class MonkeyError extends Error {}
-
 export function clearAllHints() {
   const view = atom.views.getView(atom.workspace);
   const hints = view.querySelectorAll(".monkey-jump-hint");
@@ -46,7 +44,6 @@ function generateKeySequences(nodesLength: number, keys: string[]) {
   const keysLength = keys.length;
   const seqLength = calcSeqLength(nodesLength, keysLength);
   const iter = keySequencer(seqLength, keys);
-  const keyindex = Array(seqLength).fill(0);
   const seqs = [];
   while (seqs.length < nodesLength) {
     seqs.push(iter.next().value);
@@ -64,7 +61,6 @@ interface KeySeqMapRec<A> extends Map<string, KeySeqMapRec<A> | A> {}
 function* forEach<A extends Target>(
   keymap: KeySeqMap<A>
 ): IterableIterator<KeySeqElm<A>> {
-  let map = keymap;
   for (const elm of keymap.values()) {
     if (elm instanceof Map) {
       for (const e of forEach(elm)) {
@@ -223,7 +219,7 @@ async function handleKeys<A extends Target>(
   return elm.value;
 }
 
-export async function selectTargets<A extends Target>(
+export async function selectTarget<A extends Target>(
   targets: A[]
 ): Promise<A | void> {
   if (targets.length < 1) {
@@ -250,8 +246,13 @@ export interface SelectableTarget extends Target {
   toggleSelection: () => void;
 }
 
+type SelectMultipleTargetsOptions<A> = {
+  selected?: boolean | A[];
+};
+
 export async function selectMultipleTargets<A extends SelectableTarget>(
-  targets: A[]
+  targets: A[],
+  options: SelectMultipleTargetsOptions<A> = {}
 ): Promise<A[]> {
   if (targets.length < 1) {
     throw new Error("Missing targets to jump");
@@ -266,7 +267,19 @@ export async function selectMultipleTargets<A extends SelectableTarget>(
     setKeySeq(keymap, seq, target);
   }
 
-  let selected: A[] = [];
+  let selected: A[] = Array.isArray(options.selected)
+    ? options.selected
+    : options.selected === true
+      ? targets
+      : [];
+  if (selected.length > 0) {
+    for (const { value, hintElm } of forEach(keymap)) {
+      if (selected.includes(value)) {
+        hintElm.classList.add("selected");
+      }
+    }
+  }
+
   while (true) {
     const t = await handleKeys(keymap);
     if (t === undefined) {
