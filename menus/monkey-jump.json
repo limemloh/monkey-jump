@@ -7,14 +7,30 @@
         {
           "label": "Monkey",
           "submenu": [
+            { "label": "Jump", "command": "monkey:jump" },
+            { "label": "Jump word", "command": "monkey:jump-word" },
+            { "label": "Jump line", "command": "monkey:jump-word" },
             {
-              "label": "Jump",
-              "command": "monkey:jump"
+              "label": "Select a selection",
+              "command": "monkey:select-selection"
             },
             {
-              "label": "Clear hints",
-              "command": "monkey:Clear hints"
-            }
+              "label": "Select multiple selections",
+              "command": "monkey:select-multiple-selections"
+            },
+            {
+              "label": "Select multiple words",
+              "command": "monkey:select-multiple-words"
+            },
+            {
+              "label": "Select multiple lines",
+              "command": "monkey:select-multiple-lines"
+            },
+            {
+              "label": "Deselect multiple selections",
+              "command": "monkey:deselect-multiple-selections"
+            },
+            { "label": "Clear hints", "command": "monkey:Clear hints" }
           ]
         }
       ]
