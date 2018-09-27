@@ -132,6 +132,7 @@ function nextKeydown(): Promise<string | undefined> {
     function keyListener(keyEvent: KeyboardEvent) {
       const { key, ctrlKey, shiftKey, altKey, metaKey } = keyEvent;
       view.removeEventListener("mousedown", mouseListener);
+      view.removeEventListener("scroll", scrollListener);
       if (ctrlKey || shiftKey || altKey || metaKey) {
         resolve(undefined);
       }
@@ -141,6 +142,12 @@ function nextKeydown(): Promise<string | undefined> {
     }
     function mouseListener(mouseEvent: MouseEvent) {
       view.removeEventListener("keydown", keyListener);
+      view.removeEventListener("scroll", scrollListener);
+      resolve(undefined);
+    }
+    function scrollListener() {
+      view.removeEventListener("keydown", keyListener);
+      view.removeEventListener("mousedown", mouseListener);
       resolve(undefined);
     }
 
@@ -149,6 +156,10 @@ function nextKeydown(): Promise<string | undefined> {
       capture: true
     });
     view.addEventListener("mousedown", mouseListener, {
+      once: true,
+      capture: true
+    });
+    view.addEventListener("scroll", scrollListener, {
       once: true,
       capture: true
     });

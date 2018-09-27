@@ -1,4 +1,4 @@
-import { CompositeDisposable, TextEditor } from "atom";
+import { CompositeDisposable } from "atom";
 import { selectTarget, clearAllHints, selectMultipleTargets } from "./jump";
 import { getClickables } from "./clickables";
 import { getRanges, getWords, getLines } from "./ranges";
